@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", sans-serif;
+  --font-headline: "Poppins", sans-serif;
+  
+  --color-cyber-black: #050505;
+  --color-cyber-red: #FF003C;
+  --color-cyber-orange: #FF4E00;
+  --color-cyber-dark-blue: #080911;
+  --theme-color: #FF4E00;
+}
+
+@layer base {
+  body {
+    @apply bg-cyber-black text-white font-sans overflow-x-hidden selection:bg-cyber-red selection:text-white;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/[0.03] border border-white/5 rounded-xl;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+/* Scrollbar settings */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+* {
+  scrollbar-width: none;
+}
