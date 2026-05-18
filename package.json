@@ -1,8 +1,23 @@
 {
-  "name": "ARENA SUPREMACY FEDERATION - FREE FIRE TOURNAMENT",
-  "description": "Premium esports tournament platform for Arena Supremacy Federation. Dominate the arena and claim your glory.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "name": "asf-tournament",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "^0.546.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vercel/node": "^5.1.5",
+    "vite": "^6.2.0",
+    "typescript": "~5.8.2"
+  }
 }
