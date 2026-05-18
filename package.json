@@ -1,0 +1,8 @@
+{
+  "name": "ARENA SUPREMACY FEDERATION - FREE FIRE TOURNAMENT",
+  "description": "Premium esports tournament platform for Arena Supremacy Federation. Dominate the arena and claim your glory.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "entities": {
+    "Registration": {
+      "title": "Registration",
+      "description": "A registration record for the tournament (supports solo or squad registrations).",
+      "type": "object",
+      "properties": {
+        "squadName": {
+          "type": "string",
+          "description": "The name of the squad."
+        },
+        "uids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The UIDs of the squad members."
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The game names of the squad members."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The email of the squad captain."
+        },
+        "mobile": {
+          "type": "string",
+          "description": "The mobile number of the squad captain."
+        },
+        "squadNumber": {
+          "type": "integer",
+          "description": "The unique number assigned to the squad, starting from 100."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the registration was created."
+        },
+        "couponCode": {
+          "type": "string",
+          "description": "The coupon code used for the registration, if any."
+        },
+        "partnerUid": {
+          "type": "string",
+          "description": "The UID of the partner who referred the registration."
+        }
+      },
+      "required": ["squadName", "uids", "names", "email", "mobile", "squadNumber", "createdAt"]
+    },
+    "Partner": {
+      "title": "Partner",
+      "description": "A partner in the affiliate program.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The UID of the partner."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The email of the partner."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The display name of the partner."
+        },
+        "couponCode": {
+          "type": "string",
+          "description": "The unique coupon code for the partner."
+        },
+        "totalEarnings": {
+          "type": "number",
+          "description": "The total earnings of the partner."
+        },
+        "balance": {
+          "type": "number",
+          "description": "The current balance of the partner."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the partner account was created."
+        }
+      },
+      "required": ["uid", "email", "displayName", "couponCode", "totalEarnings", "balance", "createdAt"]
+    },
+    "Referral": {
+      "title": "Referral",
+      "description": "A referral record for tracking usage of a coupon code.",
+      "type": "object",
+      "properties": {
+        "partnerUid": {
+          "type": "string",
+          "description": "The UID of the partner who owns the code."
+        },
+        "usedBy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of user UIDs who have used this code."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount earned by the partner per referral (₹0 if ₹10 discount applied)."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "completed"],
+          "description": "The status of the referral tracking."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the referral tracking was initialized."
+        }
+      },
+      "required": ["partnerUid", "amount", "status", "createdAt", "usedBy"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global application settings.",
+      "type": "object",
+      "properties": {
+        "tournamentDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time of the tournament."
+        },
+        "tournamentTitle": {
+          "type": "string",
+          "description": "The main title of the tournament."
+        },
+        "prizePool": {
+          "type": "string",
+          "description": "The total prize pool amount."
+        },
+        "prizesList": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "value": { "type": "string" }
+            }
+          },
+          "description": "Dynamic list of prizes for the tournament."
+        },
+        "emailSubject": {
+          "type": "string",
+          "description": "The subject of the confirmation email sent after registration."
+        },
+        "emailBody": {
+          "type": "string",
+          "description": "The HTML body of the confirmation email. Supports placeholders like {{PLAYER_NAME}} and {{SQUAD_NUMBER}}."
+        },
+        "successHeading": {
+          "type": "string",
+          "description": "The heading displayed on the success screen after registration."
+        },
+        "successMessage": {
+          "type": "string",
+          "description": "The detailed message displayed on the success screen."
+        }
+      },
+      "required": ["tournamentDate"]
+    },
+    "LaunchRefer": {
+      "title": "LaunchRefer",
+      "description": "Record of a referral code being used.",
+      "type": "object",
+      "properties": {
+        "couponCode": {
+          "type": "string",
+          "description": "The coupon code used."
+        },
+        "partnerUid": {
+          "type": "string",
+          "description": "The UID of the partner (agent ID)."
+        },
+        "newUserId": {
+          "type": "string",
+          "description": "The UID of the user who used the code."
+        },
+        "matchId": {
+          "type": "string",
+          "description": "The ID of the tournament/match."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the referral was recorded."
+        }
+      },
+      "required": ["couponCode", "partnerUid", "newUserId", "matchId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/registrations/{registrationId}": {
+      "schema": "Registration",
+      "description": "Collection of confirmed tournament registrations."
+    },
+    "/registration_pending/{registrationId}": {
+      "schema": "Registration",
+      "description": "Collection of pending tournament registrations awaiting verification."
+    },
+    "/partners/{partnerId}": {
+      "schema": "Partner",
+      "description": "Collection of partner accounts."
+    },
+    "/referrals/{referralId}": {
+      "schema": "Referral",
+      "description": "Collection of referral records."
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global application settings like tournament date."
+    },
+    "/launch_refer/{referId}": {
+      "schema": "LaunchRefer",
+      "description": "Collection of referral usage logs for the launch."
+    },
+    "/launch_approved/{registrationId}": {
+      "schema": "Registration",
+      "description": "Collection of approved registrations for the launch."
+    },
+    "/registrations_launch_cup/{registrationId}": {
+      "schema": "Registration",
+      "description": "Collection of registrations for the Launch Cup tournament."
+    }
+  }
+}

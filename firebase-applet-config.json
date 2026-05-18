@@ -1,0 +1,8 @@
+# Cashfree configuration
+CASHFREE_APP_ID=
+CASHFREE_SECRET_KEY=
+CASHFREE_BASE_URL=
+VITE_CASHFREE_MODE=
+
+# Admin configuration
+VITE_ALLOWED_ADMINS=

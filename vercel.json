@@ -1,0 +1,165 @@
+import express from 'express';
+import { createServer as createViteServer } from 'vite';
+import dotenv from 'dotenv';
+import path from 'path';
+import axios from 'axios';
+
+dotenv.config();
+
+async function startServer() {
+  const app = express();
+  const PORT = Number(process.env.PORT) || 3000;
+
+  app.use(express.json());
+
+  // Cashfree Payment API
+  app.post('/api/payment-create', async (req, res) => {
+    const { amount, squadName, email, mobile, customer_id } = req.body;
+
+    const appId = (process.env.CASHFREE_APP_ID || process.env.CASHFREE_APPID || process.env.CASHFREE_APP_ || '').trim().replace(/^["']|["']$/g, '');
+    const secretKey = (process.env.CASHFREE_SECRET_KEY || process.env.CASHFREE_SECRET || process.env.CASHFREE_SECRF || '').trim().replace(/^["']|["']$/g, '');
+
+    if (!appId || !secretKey) {
+      console.error('Cashfree credentials missing in environment variables');
+      return res.status(500).json({ 
+        error: 'Payment gateway configuration missing',
+        details: 'Please set CASHFREE_APP_ID and CASHFREE_SECRET_KEY in Settings > Secrets.' 
+      });
+    }
+
+    try {
+      const orderId = `ASF_${Date.now()}`;
+      
+      // Select base URL based on mode. VITE_CASHFREE_MODE can be 'production' or 'sandbox'
+      const mode = (process.env.VITE_CASHFREE_MODE || 'sandbox').toLowerCase().trim();
+      const isProduction = mode === 'production' || mode === 'live';
+      const defaultBaseUrl = isProduction ? 'https://api.cashfree.com/pg' : 'https://sandbox.cashfree.com/pg';
+      const baseUrl = (process.env.CASHFREE_BASE_URL || defaultBaseUrl).trim();
+      
+      const appUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+      
+      // Masked logging for debugging
+      const mask = (s: string) => s.length > 6 ? `${s.substring(0, 3)}...${s.substring(s.length - 3)}` : '***';
+      console.log(`[PAYMENT] Creating order ${orderId} | Mode: ${mode} | Gateway: ${baseUrl} | AppID: ${mask(appId)}`);
+      
+      // Validate mobile number (must be 10 digits for Cashfree)
+      const cleanMobile = mobile.toString().replace(/\D/g, '').slice(-10);
+      if (cleanMobile.length !== 10) {
+        return res.status(400).json({ error: 'Invalid mobile number. Please provide a 10-digit number.' });
+      }
+
+      const response = await axios.post(`${baseUrl}/orders`, {
+        order_id: orderId,
+        order_amount: Number(amount).toFixed(2),
+        order_currency: 'INR',
+        customer_details: {
+          customer_id: customer_id || `cust_${Date.now()}`,
+          customer_email: (email || 'user@example.com').toLowerCase().trim(),
+          customer_phone: cleanMobile,
+        },
+        order_meta: {
+          return_url: `${appUrl}/api/payment-verify?order_id={order_id}`,
+        },
+        order_note: `Registration for ${squadName || 'ASF Tournament'}`,
+      }, {
+        headers: {
+          'x-client-id': appId,
+          'x-client-secret': secretKey,
+          'x-api-version': process.env.CASHFREE_API_VERSION || '2023-08-01',
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+      // Return the payment session ID to the client
+      res.json({ 
+        payment_session_id: response.data.payment_session_id,
+        order_id: response.data.order_id
+      });
+    } catch (error: any) {
+      const errorData = error.response?.data || error.message;
+      console.error('Cashfree Error:', JSON.stringify(errorData, null, 2));
+      
+      // Provide more specific error feedback to the client
+      const message = typeof errorData === 'object' ? (errorData.message || 'Authentication or server error at payment gateway') : errorData;
+      res.status(error.response?.status || 500).json({ 
+        error: 'Failed to initiate payment',
+        details: message,
+        code: errorData?.code
+      });
+    }
+  });
+
+  app.get('/api/payment-verify', async (req, res) => {
+    const { order_id } = req.query;
+
+    if (!order_id) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const appId = (process.env.CASHFREE_APP_ID || process.env.CASHFREE_APPID || process.env.CASHFREE_APP_ || '').trim().replace(/^["']|["']$/g, '');
+    const secretKey = (process.env.CASHFREE_SECRET_KEY || process.env.CASHFREE_SECRET || process.env.CASHFREE_SECRF || '').trim().replace(/^["']|["']$/g, '');
+
+    try {
+      const mode = (process.env.VITE_CASHFREE_MODE || 'sandbox').toLowerCase().trim();
+      const isProduction = mode === 'production' || mode === 'live';
+      const defaultBaseUrl = isProduction ? 'https://api.cashfree.com/pg' : 'https://sandbox.cashfree.com/pg';
+      const baseUrl = (process.env.CASHFREE_BASE_URL || defaultBaseUrl).trim();
+
+      const response = await axios.get(`${baseUrl}/orders/${order_id}`, {
+        headers: {
+          'x-client-id': appId,
+          'x-client-secret': secretKey,
+          'x-api-version': process.env.CASHFREE_API_VERSION || '2023-08-01',
+        }
+      });
+
+      // Redirect back to the app with status
+      const status = response.data.order_status;
+      res.redirect(`/?payment_status=${status}&order_id=${order_id}`);
+    } catch (error: any) {
+      const errorData = error.response?.data || error.message;
+      console.error('Cashfree Verification Error:', JSON.stringify(errorData, null, 2));
+      res.redirect('/?payment_status=ERROR');
+    }
+  });
+
+  // Standard health check
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+  });
+
+  const isProd = process.env.NODE_ENV === 'production';
+  console.log(`[SERVER] Initializing in ${isProd ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
+
+  // Vite middleware for development
+  if (!isProd) {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    const indexPath = path.join(distPath, 'index.html');
+    
+    console.log(`[SERVER] Serving static files from: ${distPath}`);
+    app.use(express.static(distPath));
+    
+    app.get('*', (req, res) => {
+      // Don't handle API routes here, they should have been caught above
+      if (req.path.startsWith('/api/')) {
+        console.warn(`[SERVER] 404 on API route: ${req.path}`);
+        return res.status(404).json({ error: 'API route not found' });
+      }
+      res.sendFile(indexPath);
+    });
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[SERVER] >>> Server is LIVE on port ${PORT}`);
+    console.log(`[SERVER] >>> API Endpoints: /api/payment-create, /api/payment-verify, /api/health`);
+  });
+}
+
+startServer();

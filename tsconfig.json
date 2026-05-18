@@ -1,0 +1,3 @@
+// Root entry point for Hostinger Express deployment
+// This file points to the bundled server in the dist directory
+require('./dist/server.cjs');

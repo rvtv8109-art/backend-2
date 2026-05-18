@@ -1,0 +1,18 @@
+# LEGACY PROJECT FILES
+
+The files in this root directory are part of the original monolithic setup. 
+To deploy your project to production, please use the separated folders:
+
+1. **Frontend**: Use the `/frontend` directory for Hostinger deployment.
+2. **Backend**: Use the `/backend` directory for Render deployment.
+
+---
+
+### Deployment Folders
+
+- `/frontend` -> **Hostinger** (Run `npm run build` inside this folder)
+- `/backend` -> **Render** (Connect your repo and set the root directory to `backend`)
+
+### Environment Setup
+
+Make sure to copy `.env.example` in each folder to `.env` and fill in your production API keys, secrets, and URLs.
