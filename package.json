@@ -1,12 +1,13 @@
 {
   "name": "asf-tournament",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
-    "start": "NODE_ENV=production node dist/server.cjs",
+    "start": "node dist/server.cjs",
+    "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -25,7 +26,8 @@
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^6.28.0",
+    "tailwindcss": "^4.0.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
@@ -34,7 +36,6 @@
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
     "postcss": "^8.5.3",
-    "tailwindcss": "^4.0.0",
     "tsx": "^4.22.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
